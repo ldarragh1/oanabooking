@@ -30,7 +30,7 @@ Follow the prompts (choose GitHub.com, HTTPS, and "Login with a web browser"). I
 
 ```bash
 cd ~
-gh repo clone darraghlynch/oanabooking
+gh repo clone ldarragh1/oanabooking
 cd oanabooking
 ```
 
