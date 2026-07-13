@@ -289,7 +289,6 @@ textarea.form-ctrl { resize: vertical; min-height: 70px; font-family: 'Inter', s
     </div>
     <h1>Homeopathic Clinic Dublin</h1>
     <p>Admin portal — sign in to continue</p>
-    <div class="login-field"><label>Username</label><input type="text" id="loginUser" placeholder="oana" autocomplete="username"></div>
     <div class="login-field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="login-btn" onclick="doLogin()">Sign In</button>
     <div class="login-err" id="loginErr">Incorrect credentials — please try again.</div>
@@ -617,7 +616,6 @@ textarea.form-ctrl { resize: vertical; min-height: 70px; font-family: 'Inter', s
 <script src="data.js"></script>
 <script>
 // ── STATE ────────────────────────────────────────────────────────────────────
-const PASS = 'oana2026';
 let DB = loadStore();
 let clients = DB.clients;
 let appts = DB.appts;
@@ -681,23 +679,63 @@ function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
+// No password or key is stored in this file. In backend mode, the typed
+// password is checked server-side by admin-login, which hands back the
+// real ADMIN_KEY only on success; it's then kept in this browser's
+// localStorage (this device only) so the file itself stays safe to host
+// publicly. Local demo mode (no backend configured) skips the check
+// entirely since there's no real data to protect.
+const SESSION_KEY = 'oana_admin_session';
+
+function showApp() {
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('appWrap').style.display = 'flex';
+}
 async function doLogin() {
   const p = document.getElementById('loginPass').value;
-  if (p === PASS) {
-    document.getElementById('loginWrap').style.display = 'none';
-    document.getElementById('appWrap').style.display = 'flex';
+  document.getElementById('loginErr').style.display = 'none';
+
+  if (!backendEnabled()) {
+    showApp();
     await init();
-  } else {
+    return;
+  }
+
+  const btn = document.querySelector('.login-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+  try {
+    const res = await backendPost('admin-login', { password: p });
+    ADMIN_KEY = res.adminKey;
+    localStorage.setItem(SESSION_KEY, ADMIN_KEY);
+    showApp();
+    await init();
+  } catch (e) {
     document.getElementById('loginErr').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
   }
 }
 function doLogout() {
+  ADMIN_KEY = '';
+  localStorage.removeItem(SESSION_KEY);
   document.getElementById('appWrap').style.display = 'none';
   document.getElementById('loginWrap').style.display = 'flex';
   document.getElementById('loginPass').value = '';
   document.getElementById('loginErr').style.display = 'none';
 }
 document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key==='Enter') doLogin(); });
+
+// Stay logged in across visits on this device
+(function tryAutoLogin() {
+  if (!backendEnabled()) return;
+  const saved = localStorage.getItem(SESSION_KEY);
+  if (!saved) return;
+  ADMIN_KEY = saved;
+  showApp();
+  init();
+})();
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {

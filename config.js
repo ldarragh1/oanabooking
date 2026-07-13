@@ -1,22 +1,22 @@
 /* ────────────────────────────────────────────────────────────────────────
    Backend configuration. Leave BACKEND_URL empty to run in local demo
    mode — everything works exactly as before (localStorage, simulated
-   Stripe, simulated emails). Fill these in once the Supabase backend in
+   Stripe, simulated emails). Fill this in once the Supabase backend in
    /backend is deployed (see backend/SETUP.md) to switch both pages over
    to real bookings, real Stripe Checkout, and real emails.
 
-   This is a TEMPLATE. Copy it to config.js and fill in the real values —
-   config.js itself is gitignored so the live keys never end up in git
-   history. The real values are saved in the password manager note
-   "Oana Clinic — config.js" (see /RECOVERY.md).
+   No admin secret lives in this file — admin-dashboard.html gets its
+   access key at login time from the admin-login endpoint, and holds it
+   only in the browser's localStorage on Oana's own device. That's what
+   makes it safe for this file (and admin-dashboard.html) to be hosted
+   publicly alongside booking.html.
    ──────────────────────────────────────────────────────────────────────── */
 
 // e.g. 'https://YOUR-PROJECT-REF.supabase.co/functions/v1'
-const BACKEND_URL = '';
+const BACKEND_URL = 'https://cxcppaaddvriwcgtkbxk.supabase.co/functions/v1';
 
-// Must match the ADMIN_KEY secret set on the backend (see SETUP.md).
-// Only used by admin-dashboard.html.
-const ADMIN_KEY = '';
+// Set at runtime after a successful admin login (see admin-dashboard.html).
+let ADMIN_KEY = '';
 
 function backendEnabled() { return !!BACKEND_URL; }
 

@@ -3,4 +3,3 @@
 node_modules/
 backend/.admin-key-DO-NOT-COMMIT.txt
 backend/supabase/.temp/
-config.js
