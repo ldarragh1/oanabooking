@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Consultation — Homeopathic Clinic Dublin</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #23291f;
+  --cream: #faf7f0;
+  --cream-2: #f3efe4;
+  --card: #ffffff;
+  --primary: #0d9488;
+  --primary-d: #0b7d72;
+  --primary-l: #eef7f5;
+  --gold: #b8895a;
+  --gold-l: #fbf3ea;
+  --border: #e6e1d3;
+  --muted: #756f60;
+  --muted-l: #a39c8a;
+  --danger: #b3543f;
+  --danger-l: #fbeee9;
+  --r: 14px;
+  --r-lg: 22px;
+  --sh: 0 1px 3px rgba(35,41,31,0.06), 0 8px 24px -8px rgba(35,41,31,0.08);
+  --sh-lg: 0 20px 50px -12px rgba(35,41,31,0.18);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  background-image: radial-gradient(circle at 12% 8%, rgba(13,148,136,0.06), transparent 45%),
+                     radial-gradient(circle at 88% 92%, rgba(184,137,90,0.08), transparent 45%);
+}
+h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; letter-spacing: -0.01em; }
+
+/* ─ HEADER ────────────────────────────────────────────────────────────── */
+.site-header { display: flex; align-items: center; justify-content: space-between; max-width: 760px; margin: 0 auto; padding: 1.6rem 1.5rem 0; }
+.brand { display: flex; align-items: center; gap: .7rem; }
+.brand-mark { width: 38px; height: 38px; background: var(--primary); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(13,148,136,.28); }
+.brand-mark svg { color: #fff; }
+.brand-name { font-family: 'Fraunces', serif; font-weight: 600; font-size: 1.05rem; letter-spacing: -.01em; line-height: 1.15; }
+.brand-tag { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .09em; margin-top: .12rem; }
+.site-phone { font-size: .82rem; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: .4rem; }
+.site-phone:hover { color: var(--primary-d); }
+
+/* ─ HERO ──────────────────────────────────────────────────────────────── */
+.hero { max-width: 640px; margin: 2.6rem auto 0; padding: 0 1.5rem; text-align: center; }
+.hero-eyebrow { font-size: .74rem; font-weight: 600; color: var(--primary-d); text-transform: uppercase; letter-spacing: .12em; margin-bottom: .8rem; }
+.hero h1 { font-size: 2.15rem; line-height: 1.15; margin-bottom: .8rem; }
+.hero p { color: var(--muted); font-size: 1rem; line-height: 1.6; max-width: 480px; margin: 0 auto; }
+.hero-practitioner { display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.3rem; padding: .5rem 1rem .5rem .5rem; background: var(--card); border: 1px solid var(--border); border-radius: 40px; box-shadow: var(--sh); }
+.hero-av { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #14b8a6); display: flex; align-items: center; justify-content: center; color: #fff; font-size: .72rem; font-weight: 700; font-family: 'Inter', sans-serif; }
+.hero-practitioner span { font-size: .82rem; font-weight: 600; }
+.hero-practitioner small { display: block; font-size: .68rem; color: var(--muted); font-weight: 500; }
+
+/* ─ WIZARD CARD ───────────────────────────────────────────────────────── */
+.wiz-wrap { max-width: 640px; margin: 2.4rem auto 3rem; padding: 0 1.5rem; }
+.wiz-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--sh-lg); overflow: hidden; }
+
+.progress { display: flex; gap: .4rem; padding: 1.3rem 1.6rem 0; }
+.progress-seg { flex: 1; height: 4px; border-radius: 4px; background: var(--border); overflow: hidden; }
+.progress-seg i { display: block; height: 100%; width: 0%; background: var(--primary); transition: width .3s; }
+
+.wiz-body { padding: 1.5rem 1.7rem 1.8rem; }
+.wiz-step { display: none; }
+.wiz-step.active { display: block; animation: fIn .25s ease; }
+@keyframes fIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.step-lbl { font-size: .7rem; font-weight: 700; color: var(--primary-d); text-transform: uppercase; letter-spacing: .09em; margin-bottom: .35rem; }
+.step-title { font-size: 1.3rem; margin-bottom: .3rem; }
+.step-sub { font-size: .87rem; color: var(--muted); margin-bottom: 1.4rem; line-height: 1.5; }
+
+/* option cards */
+.opt-grid { display: grid; gap: .75rem; margin-bottom: 1.5rem; }
+.opt-card { border: 1.5px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: .9rem; background: var(--card); }
+.opt-card:hover { border-color: var(--primary); background: var(--primary-l); }
+.opt-card.sel { border-color: var(--primary); background: var(--primary-l); box-shadow: 0 0 0 3px rgba(13,148,136,.12); }
+.opt-icon { width: 42px; height: 42px; border-radius: 10px; background: var(--gold-l); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; flex-shrink: 0; }
+.opt-card.sel .opt-icon { background: var(--primary); color: #fff; }
+.opt-body { flex: 1; min-width: 0; }
+.opt-title { font-weight: 700; font-size: .93rem; }
+.opt-desc { font-size: .78rem; color: var(--muted); margin-top: .15rem; line-height: 1.4; }
+.opt-price { font-weight: 800; font-size: 1.05rem; color: var(--primary-d); flex-shrink: 0; letter-spacing: -.01em; }
+.opt-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.opt-card.sel .opt-check { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+/* date / time pickers */
+.date-scroll { display: flex; gap: .55rem; overflow-x: auto; padding-bottom: .6rem; margin-bottom: 1.1rem; }
+.date-pill { flex-shrink: 0; width: 62px; padding: .65rem .3rem; border: 1.5px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all .15s; background: var(--card); }
+.date-pill:hover { border-color: var(--primary); }
+.date-pill.sel { border-color: var(--primary); background: var(--primary); }
+.date-pill.sel .dp-dow, .date-pill.sel .dp-num { color: #fff; }
+.dp-dow { font-size: .64rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
+.dp-num { font-size: 1.15rem; font-weight: 800; margin-top: .15rem; }
+.time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem; margin-bottom: .5rem; }
+.time-pill { padding: .55rem .3rem; border: 1.5px solid var(--border); border-radius: 9px; text-align: center; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .15s; background: var(--card); color: var(--text-2, #374151); }
+.time-pill:hover { border-color: var(--primary); }
+.time-pill.sel { border-color: var(--primary); background: var(--primary); color: #fff; }
+.no-slots { font-size: .84rem; color: var(--muted); padding: 1rem 0; text-align: center; }
+
+/* form fields */
+.f-grp { margin-bottom: 1rem; }
+.f-lbl { display: block; font-size: .73rem; font-weight: 700; color: var(--muted); margin-bottom: .35rem; letter-spacing: .03em; text-transform: uppercase; }
+.f-ctrl { width: 100%; padding: .68rem .95rem; border: 1.5px solid var(--border); border-radius: 10px; font-family: 'Inter', sans-serif; font-size: .9rem; color: var(--ink); background: var(--card); outline: none; transition: border-color .15s, box-shadow .15s; }
+.f-ctrl:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,148,136,.1); }
+textarea.f-ctrl { resize: vertical; min-height: 70px; }
+.f-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+
+/* summary */
+.summary-box { background: var(--cream-2); border: 1px solid var(--border); border-radius: var(--r); padding: 1rem 1.1rem; margin-bottom: 1.3rem; }
+.summary-row { display: flex; justify-content: space-between; font-size: .85rem; padding: .3rem 0; }
+.summary-row span:first-child { color: var(--muted); }
+.summary-row span:last-child { font-weight: 700; }
+.summary-total { border-top: 1px solid var(--border); margin-top: .4rem; padding-top: .55rem; font-size: .95rem; }
+.summary-total span:last-child { color: var(--primary-d); font-size: 1.1rem; }
+
+/* card step */
+.secure-badge { display: flex; align-items: center; gap: .4rem; font-size: .75rem; color: var(--muted); margin-bottom: 1.1rem; }
+.pay-choice-note { background: var(--gold-l); border: 1px solid #eaceac; border-radius: var(--r); padding: .8rem 1rem; font-size: .82rem; color: #7a5327; margin-bottom: 1.3rem; line-height: 1.5; }
+
+/* buttons */
+.wiz-actions { display: flex; align-items: center; gap: .7rem; margin-top: .4rem; }
+.btn { padding: .72rem 1.3rem; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: .88rem; font-weight: 700; cursor: pointer; border: none; transition: all .15s; display: inline-flex; align-items: center; justify-content: center; gap: .4rem; white-space: nowrap; }
+.btn-primary { background: var(--primary); color: #fff; box-shadow: 0 4px 14px rgba(13,148,136,.28); flex: 1; }
+.btn-primary:hover:not(:disabled) { background: var(--primary-d); box-shadow: 0 6px 18px rgba(13,148,136,.35); }
+.btn-primary:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+.btn-back { background: transparent; color: var(--muted); border: 1.5px solid var(--border); }
+.btn-back:hover { border-color: var(--muted-l); color: var(--ink); }
+
+/* confirmation */
+.done-wrap { text-align: center; padding: 1rem 0 .5rem; }
+.done-icon { width: 66px; height: 66px; border-radius: 50%; background: var(--primary-l); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; }
+.done-wrap h2 { font-size: 1.4rem; margin-bottom: .5rem; }
+.done-wrap p { color: var(--muted); font-size: .9rem; line-height: 1.55; max-width: 400px; margin: 0 auto; }
+.done-summary { text-align: left; margin: 1.4rem 0; }
+.done-note { font-size: .82rem; color: var(--muted); background: var(--cream-2); border-radius: var(--r); padding: .8rem 1rem; margin-top: 1rem; line-height: 1.5; }
+
+/* processing */
+.processing { text-align: center; padding: 2.2rem 0; }
+.spinner { width: 34px; height: 34px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; margin: 0 auto 1rem; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* footer */
+.site-footer { text-align: center; padding: 0 1.5rem 3rem; color: var(--muted-l); font-size: .78rem; line-height: 1.7; }
+.site-footer a { color: var(--muted); }
+
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.7rem; }
+  .f-row { grid-template-columns: 1fr; }
+  .time-grid { grid-template-columns: repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9C.5 8 2.5 4 6.5 4c2 0 3.3 1 5.5 3 2.2-2 3.5-3 5.5-3 4 0 6 4 4 8-2.5 4.5-9.5 9-9.5 9z"/></svg>
+    </div>
+    <div>
+      <div class="brand-name">Homeopathic Clinic Dublin</div>
+      <div class="brand-tag">Online Booking</div>
+    </div>
+  </div>
+  <a class="site-phone" href="tel:+353862136885">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    +353 86 213 6885
+  </a>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Book Your Consultation</div>
+  <h1>Take the first step toward feeling like yourself again.</h1>
+  <p>Choose a time that suits you — in person at our Ranelagh clinic, or online from wherever you are.</p>
+  <div class="hero-practitioner">
+    <div class="hero-av">OM</div>
+    <div style="text-align:left">
+      <span>Oana Mihai</span>
+      <small>Lic ISH, ISHom</small>
+    </div>
+  </div>
+</section>
+
+<div class="wiz-wrap">
+  <div class="wiz-card">
+    <div class="progress">
+      <div class="progress-seg"><i id="pg1"></i></div>
+      <div class="progress-seg"><i id="pg2"></i></div>
+      <div class="progress-seg"><i id="pg3"></i></div>
+      <div class="progress-seg"><i id="pg4"></i></div>
+    </div>
+
+    <div class="wiz-body">
+
+      <!-- STEP: SERVICE -->
+      <div class="wiz-step" id="step-service">
+        <div class="step-lbl">Step 1 of 4</div>
+        <h2 class="step-title">Choose a consultation</h2>
+        <p class="step-sub">Not sure which one? First time here, choose Initial Consultation.</p>
+        <div class="opt-grid" id="serviceGrid"></div>
+        <div class="wiz-actions">
+          <button class="btn btn-primary" id="svcNextBtn" onclick="fromService()" disabled>Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP: MODE -->
+      <div class="wiz-step" id="step-mode">
+        <div class="step-lbl">Step 2 of 4</div>
+        <h2 class="step-title">In person or online?</h2>
+        <p class="step-sub">Online sessions are held over video call and are confirmed once paid.</p>
+        <div class="opt-grid">
+          <div class="opt-card" id="mode-in-person" onclick="pickMode('in-person')">
+            <div class="opt-icon">🏠</div>
+            <div class="opt-body"><div class="opt-title">In Person</div><div class="opt-desc">Elmwood House, 35 Ranelagh, Dublin 6</div></div>
+            <div class="opt-check"></div>
+          </div>
+          <div class="opt-card" id="mode-online" onclick="pickMode('online')">
+            <div class="opt-icon">💻</div>
+            <div class="opt-body"><div class="opt-title">Online</div><div class="opt-desc">Video call — link sent after payment</div></div>
+            <div class="opt-check"></div>
+          </div>
+        </div>
+        <div class="wiz-actions">
+          <button class="btn btn-back" onclick="goBack()">Back</button>
+          <button class="btn btn-primary" id="modeNextBtn" onclick="fromMode()" disabled>Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP: PAYMENT METHOD (in-person only) -->
+      <div class="wiz-step" id="step-paymethod">
+        <div class="step-lbl">Step 2 of 4</div>
+        <h2 class="step-title">How would you like to pay?</h2>
+        <p class="step-sub">You can secure your session with card payment now, or pay when you arrive.</p>
+        <div class="opt-grid">
+          <div class="opt-card" id="pay-stripe" onclick="pickPayMethod('stripe')">
+            <div class="opt-icon">💳</div>
+            <div class="opt-body"><div class="opt-title">Pay Online Now</div><div class="opt-desc">Secure card payment — instantly confirmed</div></div>
+            <div class="opt-check"></div>
+          </div>
+          <div class="opt-card" id="pay-inperson" onclick="pickPayMethod('in-person')">
+            <div class="opt-icon">🤝</div>
+            <div class="opt-body"><div class="opt-title">Pay In Person</div><div class="opt-desc">Cash or card at your appointment</div></div>
+            <div class="opt-check"></div>
+          </div>
+        </div>
+        <div class="wiz-actions">
+          <button class="btn btn-back" onclick="goBack()">Back</button>
+          <button class="btn btn-primary" id="payNextBtn" onclick="fromPayMethod()" disabled>Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP: DATE & TIME -->
+      <div class="wiz-step" id="step-datetime">
+        <div class="step-lbl">Step 3 of 4</div>
+        <h2 class="step-title">Pick a date &amp; time</h2>
+        <p class="step-sub">Times shown are in Dublin (IST/GMT).</p>
+        <div class="date-scroll" id="dateScroll"></div>
+        <div class="time-grid" id="timeGrid"></div>
+        <div class="wiz-actions">
+          <button class="btn btn-back" onclick="goBack()">Back</button>
+          <button class="btn btn-primary" id="dtNextBtn" onclick="fromDateTime()" disabled>Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP: DETAILS -->
+      <div class="wiz-step" id="step-details">
+        <div class="step-lbl">Step 4 of 4</div>
+        <h2 class="step-title">Your details</h2>
+        <p class="step-sub">We'll use these to confirm your appointment.</p>
+        <div class="f-row">
+          <div class="f-grp"><label class="f-lbl">First Name</label><input class="f-ctrl" id="bkFirst"></div>
+          <div class="f-grp"><label class="f-lbl">Last Name</label><input class="f-ctrl" id="bkLast"></div>
+        </div>
+        <div class="f-row">
+          <div class="f-grp"><label class="f-lbl">Email</label><input class="f-ctrl" id="bkEmail" type="email"></div>
+          <div class="f-grp"><label class="f-lbl">Phone</label><input class="f-ctrl" id="bkPhone" type="tel"></div>
+        </div>
+        <div class="f-grp"><label class="f-lbl">Reason for Visit (optional)</label><textarea class="f-ctrl" id="bkNotes" placeholder="Briefly, what would you like help with?"></textarea></div>
+        <div class="summary-box" id="detailsSummary"></div>
+        <div class="wiz-actions">
+          <button class="btn btn-back" onclick="goBack()">Back</button>
+          <button class="btn btn-primary" onclick="fromDetails()">Continue</button>
+        </div>
+      </div>
+
+      <!-- STEP: CARD PAYMENT -->
+      <div class="wiz-step" id="step-card">
+        <div class="step-lbl">Payment</div>
+        <h2 class="step-title">Secure card payment</h2>
+        <div class="secure-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Payments securely processed by Stripe
+        </div>
+        <div class="summary-box" id="cardSummary"></div>
+        <div class="f-grp"><label class="f-lbl">Card Number</label><input class="f-ctrl" id="ccNum" placeholder="4242 4242 4242 4242" inputmode="numeric" maxlength="19"></div>
+        <div class="f-row">
+          <div class="f-grp"><label class="f-lbl">Expiry</label><input class="f-ctrl" id="ccExp" placeholder="MM/YY" maxlength="5"></div>
+          <div class="f-grp"><label class="f-lbl">CVC</label><input class="f-ctrl" id="ccCvc" placeholder="123" maxlength="4" inputmode="numeric"></div>
+        </div>
+        <div class="wiz-actions">
+          <button class="btn btn-back" onclick="goBack()">Back</button>
+          <button class="btn btn-primary" id="payBtn" onclick="submitPayment()">Pay &amp; Confirm</button>
+        </div>
+      </div>
+
+      <!-- STEP: PROCESSING -->
+      <div class="wiz-step" id="step-processing">
+        <div class="processing">
+          <div class="spinner"></div>
+          <p style="color:var(--muted);font-size:.88rem">Processing your payment securely…</p>
+        </div>
+      </div>
+
+      <!-- STEP: DONE (paid online) -->
+      <div class="wiz-step" id="step-done-paid">
+        <div class="done-wrap">
+          <div class="done-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2>You're confirmed!</h2>
+          <p>A confirmation email has been sent to <strong id="doneEmail1"></strong>.</p>
+        </div>
+        <div class="summary-box done-summary" id="doneSummary1"></div>
+        <div class="wiz-actions"><button class="btn btn-primary" onclick="resetWizard()">Book Another Appointment</button></div>
+      </div>
+
+      <!-- STEP: DONE (pay in person) -->
+      <div class="wiz-step" id="step-done-inperson">
+        <div class="done-wrap">
+          <div class="done-icon">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2>Your appointment is booked!</h2>
+          <p>We've let Oana know you'll be paying in person.</p>
+        </div>
+        <div class="summary-box done-summary" id="doneSummary2"></div>
+        <div class="done-note">💶 Payment will be collected at your appointment. Cash and card both accepted.</div>
+        <div class="wiz-actions" style="margin-top:1.3rem"><button class="btn btn-primary" onclick="resetWizard()">Book Another Appointment</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="site-footer">
+  Homeopathic Clinic Dublin · Elmwood House, 35 Ranelagh, Dublin 6<br>
+  +353 86 213 6885 · hello@homeopathicclinicdublin.com
+</div>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+let bk = { serviceId: null, mode: null, payMethod: null, date: null, time: null };
+let stepHistory = [];
+let currentStep = 'step-service';
+
+function svcDur(id) { return svcById(id)?.dur || 60; }
+
+// ── STEP NAV ─────────────────────────────────────────────────────────────────
+function showStep(id) {
+  document.querySelectorAll('.wiz-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  currentStep = id;
+  window.scrollTo({top: document.querySelector('.wiz-wrap').offsetTop - 20, behavior:'smooth'});
+  updateProgress();
+}
+function goNext(id) { stepHistory.push(currentStep); showStep(id); }
+function goBack() { const p = stepHistory.pop(); if (p) showStep(p); }
+
+function updateProgress() {
+  const stage = {
+    'step-service': 1, 'step-mode': 1,
+    'step-paymethod': 2, 'step-datetime': 2,
+    'step-details': 3,
+    'step-card': 4, 'step-processing': 4, 'step-done-paid': 4, 'step-done-inperson': 4
+  }[currentStep] || 1;
+  for (let i=1;i<=4;i++) {
+    document.getElementById('pg'+i).style.width = i<=stage ? '100%' : '0%';
+  }
+}
+
+// ── STEP 1: SERVICE ──────────────────────────────────────────────────────────
+function renderServices() {
+  document.getElementById('serviceGrid').innerHTML = SERVICES.map(s => `
+    <div class="opt-card" id="svc-${s.id}" onclick="pickService(${s.id})">
+      <div class="opt-icon">${s.id===1?'🌿':'🌱'}</div>
+      <div class="opt-body"><div class="opt-title">${s.name}</div><div class="opt-desc">${s.desc} · ${s.dur} min</div></div>
+      <div class="opt-price">€${s.price}</div>
+    </div>`).join('');
+}
+function pickService(id) {
+  bk.serviceId = id;
+  document.querySelectorAll('#serviceGrid .opt-card').forEach(c=>c.classList.toggle('sel', c.id==='svc-'+id));
+  document.getElementById('svcNextBtn').disabled = false;
+}
+function fromService() { goNext('step-mode'); }
+
+// ── STEP 2: MODE ─────────────────────────────────────────────────────────────
+function pickMode(mode) {
+  bk.mode = mode;
+  document.getElementById('mode-in-person').classList.toggle('sel', mode==='in-person');
+  document.getElementById('mode-online').classList.toggle('sel', mode==='online');
+  document.getElementById('modeNextBtn').disabled = false;
+}
+function fromMode() {
+  if (bk.mode === 'online') {
+    bk.payMethod = 'stripe';
+    goNext('step-datetime');
+    renderDateTime();
+  } else {
+    goNext('step-paymethod');
+  }
+}
+
+// ── STEP 2b: PAYMENT METHOD (in-person only) ─────────────────────────────────
+function pickPayMethod(m) {
+  bk.payMethod = m;
+  document.getElementById('pay-stripe').classList.toggle('sel', m==='stripe');
+  document.getElementById('pay-inperson').classList.toggle('sel', m==='in-person');
+  document.getElementById('payNextBtn').disabled = false;
+}
+function fromPayMethod() { goNext('step-datetime'); renderDateTime(); }
+
+// ── STEP 3: DATE & TIME ──────────────────────────────────────────────────────
+function renderDateTime() {
+  const scroll = document.getElementById('dateScroll');
+  scroll.innerHTML = '';
+  const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let count = 0, offset = 0, firstAvail = null;
+  while (count < 14 && offset < 30) {
+    const d = addDays(todayStr(), offset);
+    offset++;
+    if (!businessHoursFor(d)) continue;
+    count++;
+    if (!firstAvail) firstAvail = d;
+    const dt = new Date(d+'T00:00:00');
+    const pill = document.createElement('div');
+    pill.className = 'date-pill';
+    pill.id = 'date-'+d;
+    pill.innerHTML = `<div class="dp-dow">${dow[dt.getDay()]}</div><div class="dp-num">${dt.getDate()}</div>`;
+    pill.onclick = () => pickDate(d);
+    scroll.appendChild(pill);
+  }
+  document.getElementById('timeGrid').innerHTML = '';
+  document.getElementById('dtNextBtn').disabled = true;
+  if (firstAvail) pickDate(firstAvail);
+}
+async function pickDate(d) {
+  bk.date = d; bk.time = null;
+  document.querySelectorAll('.date-pill').forEach(p=>p.classList.toggle('sel', p.id==='date-'+d));
+  document.getElementById('dtNextBtn').disabled = true;
+  const grid = document.getElementById('timeGrid');
+  grid.innerHTML = '<div class="no-slots" style="grid-column:1/-1">Loading times…</div>';
+
+  let slots;
+  try {
+    slots = backendEnabled()
+      ? (await backendGet('availability', { date: d, serviceId: bk.serviceId })).slots
+      : getAvailableSlots(loadStore(), d, svcDur(bk.serviceId));
+  } catch (e) {
+    grid.innerHTML = '<div class="no-slots" style="grid-column:1/-1">Could not load availability — please try again.</div>';
+    return;
+  }
+  if (bk.date !== d) return; // a newer date pick started while this was loading
+
+  grid.innerHTML = slots.length
+    ? slots.map(t => `<div class="time-pill" id="time-${t.replace(':','')}" onclick="pickTime('${t}')">${t}</div>`).join('')
+    : '<div class="no-slots" style="grid-column:1/-1">No times available this day — please choose another date.</div>';
+}
+function pickTime(t) {
+  bk.time = t;
+  document.querySelectorAll('.time-pill').forEach(p=>p.classList.toggle('sel', p.id==='time-'+t.replace(':','')));
+  document.getElementById('dtNextBtn').disabled = false;
+}
+function fromDateTime() {
+  goNext('step-details');
+  document.getElementById('detailsSummary').innerHTML = summaryHTML();
+}
+
+// ── STEP 4: DETAILS ──────────────────────────────────────────────────────────
+function summaryHTML() {
+  const sv = svcById(bk.serviceId);
+  return `
+    <div class="summary-row"><span>Service</span><span>${sv.name}</span></div>
+    <div class="summary-row"><span>Type</span><span>${bk.mode==='online'?'Online':'In Person'}</span></div>
+    <div class="summary-row"><span>When</span><span>${fmtDateLong(bk.date)} · ${bk.time}</span></div>
+    <div class="summary-row summary-total"><span>Total</span><span>€${sv.price}</span></div>`;
+}
+async function fromDetails() {
+  const first = document.getElementById('bkFirst').value.trim();
+  const last = document.getElementById('bkLast').value.trim();
+  const email = document.getElementById('bkEmail').value.trim();
+  const phone = document.getElementById('bkPhone').value.trim();
+  if (!first || !email || !phone) { alert('Please fill in your first name, email and phone number.'); return; }
+  bk.name = (first+' '+last).trim();
+  bk.email = email;
+  bk.phone = phone;
+  bk.notes = document.getElementById('bkNotes').value.trim();
+
+  if (backendEnabled()) {
+    await submitBookingBackend();
+    return;
+  }
+
+  // Local demo mode: simulate Stripe with an in-page card form, or book
+  // straight away for pay-in-person.
+  if (bk.payMethod === 'stripe') {
+    document.getElementById('cardSummary').innerHTML = summaryHTML();
+    goNext('step-card');
+  } else {
+    createBooking();
+    document.getElementById('doneSummary2').innerHTML = summaryHTML();
+    goNext('step-done-inperson');
+  }
+}
+
+// ── BACKEND SUBMISSION (real bookings, real Stripe Checkout, real email) ─────
+async function submitBookingBackend() {
+  const btn = document.querySelector('#step-details button.btn-primary');
+  btn.disabled = true;
+  btn.textContent = 'Please wait…';
+  try {
+    const res = await backendPost('book-appointment', {
+      serviceId: bk.serviceId, mode: bk.mode, payMethod: bk.payMethod,
+      date: bk.date, time: bk.time, name: bk.name, email: bk.email, phone: bk.phone, notes: bk.notes
+    });
+    if (bk.payMethod === 'stripe') {
+      window.location.href = res.checkoutUrl; // hand off to Stripe's hosted Checkout page
+      return;
+    }
+    document.getElementById('doneSummary2').innerHTML = summaryHTML();
+    goNext('step-done-inperson');
+  } catch (e) {
+    alert(e.message || 'That time may have just been taken — please pick another slot.');
+    goBack(); // back to date/time so they can choose again
+    renderDateTime();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Continue';
+  }
+}
+
+// ── STEP 5: CARD PAYMENT (demo-mode simulation only — real payments go     ──
+// ── through Stripe Checkout via submitBookingBackend() above) ───────────────
+document.getElementById('ccExp').addEventListener('input', e => {
+  let v = e.target.value.replace(/[^\d]/g,'').slice(0,4);
+  if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
+  e.target.value = v;
+});
+document.getElementById('ccNum').addEventListener('input', e => {
+  let v = e.target.value.replace(/[^\d]/g,'').slice(0,16);
+  e.target.value = v.replace(/(.{4})/g,'$1 ').trim();
+});
+function submitPayment() {
+  const num = document.getElementById('ccNum').value.replace(/\s/g,'');
+  const exp = document.getElementById('ccExp').value;
+  const cvc = document.getElementById('ccCvc').value;
+  if (num.length < 12 || !/^\d{2}\/\d{2}$/.test(exp) || cvc.length < 3) {
+    alert('Please enter a valid card number, expiry and CVC.');
+    return;
+  }
+  goNext('step-processing');
+  setTimeout(() => {
+    createBooking();
+    document.getElementById('doneEmail1').textContent = bk.email;
+    document.getElementById('doneSummary1').innerHTML = summaryHTML();
+    stepHistory = [];
+    showStep('step-done-paid');
+  }, 1100);
+}
+
+// ── BOOKING CREATION (local demo mode only) ──────────────────────────────────
+function createBooking() {
+  const store = loadStore();
+  let client = store.clients.find(c => c.email.toLowerCase() === bk.email.toLowerCase());
+  if (!client) {
+    client = { id: store.nextClientId++, name: bk.name, phone: bk.phone, email: bk.email, dob:'', address:'', since: todayStr(), visits: 0, lastVisit: null, color: avColor(bk.name), notes: [] };
+    store.clients.push(client);
+  } else {
+    client.phone = bk.phone;
+  }
+  store.appts.push({
+    id: store.nextApptId++,
+    cId: client.id,
+    serviceId: bk.serviceId,
+    date: bk.date,
+    t: bk.time,
+    dur: svcDur(bk.serviceId),
+    mode: bk.mode,
+    payMethod: bk.payMethod,
+    payStatus: bk.payMethod === 'stripe' ? 'paid' : 'unpaid',
+    status: 'confirmed',
+    source: 'online',
+    notes: bk.notes || ''
+  });
+  client.visits++;
+  client.lastVisit = bk.date;
+  saveStore(store);
+}
+
+// ── RESET ────────────────────────────────────────────────────────────────────
+function resetWizard() {
+  bk = { serviceId: null, mode: null, payMethod: null, date: null, time: null };
+  stepHistory = [];
+  document.querySelectorAll('.opt-card').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('svcNextBtn').disabled = true;
+  document.getElementById('modeNextBtn').disabled = true;
+  document.getElementById('payNextBtn').disabled = true;
+  ['bkFirst','bkLast','bkEmail','bkPhone','bkNotes','ccNum','ccExp','ccCvc'].forEach(id=>document.getElementById(id).value='');
+  showStep('step-service');
+}
+
+// ── RETURN FROM STRIPE CHECKOUT ──────────────────────────────────────────────
+// The in-page bk/state doesn't survive the round trip to Stripe's hosted
+// page and back, so this shows a generic (but honest) confirmation rather
+// than trying to reconstruct the exact booking summary client-side — the
+// real record and the real email both come from stripe-webhook server-side.
+function handleStripeReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('paid') === '1') {
+    document.getElementById('doneEmail1').textContent = 'your inbox';
+    document.getElementById('doneSummary1').style.display = 'none';
+    stepHistory = [];
+    showStep('step-done-paid');
+    return true;
+  }
+  if (params.get('cancelled') === '1') {
+    alert('Payment was cancelled — you have not been charged, and no booking was made.');
+    return true;
+  }
+  return false;
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+renderServices();
+if (!handleStripeReturn()) showStep('step-service');
+</script>
+</body>
+</html>
