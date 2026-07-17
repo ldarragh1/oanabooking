@@ -90,13 +90,22 @@ h1, h2, h3 { font-family: 'Fraunces', serif; font-weight: 600; letter-spacing: -
 .opt-card.sel .opt-check { border-color: var(--primary); background: var(--primary); color: #fff; }
 
 /* date / time pickers */
-.date-scroll { display: flex; gap: .55rem; overflow-x: auto; padding-bottom: .6rem; margin-bottom: 1.1rem; }
-.date-pill { flex-shrink: 0; width: 62px; padding: .65rem .3rem; border: 1.5px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; transition: all .15s; background: var(--card); }
-.date-pill:hover { border-color: var(--primary); }
-.date-pill.sel { border-color: var(--primary); background: var(--primary); }
-.date-pill.sel .dp-dow, .date-pill.sel .dp-num { color: #fff; }
-.dp-dow { font-size: .64rem; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: .04em; }
-.dp-num { font-size: 1.15rem; font-weight: 800; margin-top: .15rem; }
+.cal-picker { margin-bottom: 1.2rem; }
+.cal-picker-hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+.cal-picker-label { font-size: .92rem; font-weight: 700; letter-spacing: -.01em; }
+.cal-nav-btn { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1rem; transition: all .12s; }
+.cal-nav-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); background: var(--primary-l); }
+.cal-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+.cal-picker-dow { display: grid; grid-template-columns: repeat(7,1fr); text-align: center; font-size: .64rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: .5rem; }
+.cal-picker-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: .3rem; }
+.cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 9px; font-size: .84rem; font-weight: 600; border: 1.5px solid transparent; transition: all .12s; color: var(--ink); }
+.cal-day.empty { visibility: hidden; }
+.cal-day.unavailable { color: var(--muted-l); opacity: .45; }
+.cal-day.available { background: var(--primary-l); color: var(--primary-d); cursor: pointer; }
+.cal-day.available:hover { border-color: var(--primary); }
+.cal-day.today:not(.sel) { box-shadow: inset 0 0 0 1.5px var(--gold); }
+.cal-day.sel { background: var(--primary); color: #fff; }
+.cal-hint { font-size: .78rem; color: var(--muted); text-align: center; padding: .3rem 0 .9rem; }
 .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55rem; margin-bottom: .5rem; }
 .time-pill { padding: .55rem .3rem; border: 1.5px solid var(--border); border-radius: 9px; text-align: center; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .15s; background: var(--card); color: var(--text-2, #374151); }
 .time-pill:hover { border-color: var(--primary); }
@@ -260,7 +269,16 @@ textarea.f-ctrl { resize: vertical; min-height: 70px; }
         <div class="step-lbl">Step 3 of 4</div>
         <h2 class="step-title">Pick a date &amp; time</h2>
         <p class="step-sub">Times shown are in Dublin (IST/GMT).</p>
-        <div class="date-scroll" id="dateScroll"></div>
+        <div class="cal-picker">
+          <div class="cal-picker-hd">
+            <button class="cal-nav-btn" id="calPrevBtn" onclick="calMonthMove(-1)" aria-label="Previous month">‹</button>
+            <span class="cal-picker-label" id="calPickerLabel"></span>
+            <button class="cal-nav-btn" onclick="calMonthMove(1)" aria-label="Next month">›</button>
+          </div>
+          <div class="cal-picker-dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+          <div class="cal-picker-grid" id="calPickerGrid"></div>
+        </div>
+        <div class="cal-hint" id="calHint">Select an available date above to see times.</div>
         <div class="time-grid" id="timeGrid"></div>
         <div class="wiz-actions">
           <button class="btn btn-back" onclick="goBack()">Back</button>
@@ -428,36 +446,60 @@ function pickPayMethod(m) {
 }
 function fromPayMethod() { goNext('step-datetime'); renderDateTime(); }
 
-// ── STEP 3: DATE & TIME ──────────────────────────────────────────────────────
+// ── STEP 3: DATE & TIME (month calendar) ─────────────────────────────────────
+let calYear, calMonth; // currently displayed month in the picker
+
 function renderDateTime() {
-  const scroll = document.getElementById('dateScroll');
-  scroll.innerHTML = '';
-  const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  let count = 0, offset = 0, firstAvail = null;
-  // in-person only runs one day a week, so this needs a wide lookahead
-  // window to gather 14 dates — 120 days covers it comfortably.
-  while (count < 14 && offset < 120) {
-    const d = addDays(todayStr(), offset);
-    offset++;
-    if (!businessHoursFor(d, bk.mode)) continue;
-    count++;
-    if (!firstAvail) firstAvail = d;
-    const dt = new Date(d+'T00:00:00');
-    const pill = document.createElement('div');
-    pill.className = 'date-pill';
-    pill.id = 'date-'+d;
-    pill.innerHTML = `<div class="dp-dow">${dow[dt.getDay()]}</div><div class="dp-num">${dt.getDate()}</div>`;
-    pill.onclick = () => pickDate(d);
-    scroll.appendChild(pill);
-  }
+  const t = new Date(todayStr()+'T00:00:00');
+  calYear = t.getFullYear();
+  calMonth = t.getMonth();
+  bk.date = null; bk.time = null;
   document.getElementById('timeGrid').innerHTML = '';
+  document.getElementById('calHint').textContent = 'Select an available date above to see times.';
   document.getElementById('dtNextBtn').disabled = true;
-  if (firstAvail) pickDate(firstAvail);
+  renderMonthCalendar();
+}
+function calMonthMove(n) {
+  calMonth += n;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  renderMonthCalendar();
+}
+function renderMonthCalendar() {
+  const label = new Date(calYear, calMonth, 1).toLocaleDateString('en-IE', { month: 'long', year: 'numeric' });
+  document.getElementById('calPickerLabel').textContent = label;
+
+  const today = todayStr();
+  const t = new Date(today+'T00:00:00');
+  document.getElementById('calPrevBtn').disabled = (calYear === t.getFullYear() && calMonth === t.getMonth());
+
+  let startWeekday = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  startWeekday = startWeekday === 0 ? 6 : startWeekday - 1;    // Mon=0..Sun=6
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+  const grid = document.getElementById('calPickerGrid');
+  grid.innerHTML = '';
+  for (let i=0; i<startWeekday; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cal-day empty';
+    grid.appendChild(cell);
+  }
+  for (let day=1; day<=daysInMonth; day++) {
+    const d = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const cell = document.createElement('div');
+    cell.dataset.date = d;
+    const avail = d >= today && businessHoursFor(d, bk.mode);
+    cell.className = 'cal-day ' + (avail ? 'available' : 'unavailable') + (d===today ? ' today' : '') + (d===bk.date ? ' sel' : '');
+    cell.textContent = day;
+    if (avail) cell.onclick = () => pickDate(d);
+    grid.appendChild(cell);
+  }
 }
 async function pickDate(d) {
   bk.date = d; bk.time = null;
-  document.querySelectorAll('.date-pill').forEach(p=>p.classList.toggle('sel', p.id==='date-'+d));
+  document.querySelectorAll('.cal-day').forEach(el => el.classList.toggle('sel', el.dataset.date === d));
   document.getElementById('dtNextBtn').disabled = true;
+  document.getElementById('calHint').textContent = '';
   const grid = document.getElementById('timeGrid');
   grid.innerHTML = '<div class="no-slots" style="grid-column:1/-1">Loading times…</div>';
 
