@@ -260,11 +260,22 @@ textarea.form-ctrl { resize: vertical; min-height: 70px; font-family: 'Inter', s
 .hist-row:last-child { border-bottom: none; }
 .hist-date { width: 92px; flex-shrink: 0; color: var(--muted); font-weight: 600; font-size: .76rem; }
 .hist-info { flex: 1; min-width: 0; }
-.note-card { border-left: 3px solid var(--primary); background: var(--bg); border-radius: 8px; padding: .7rem .9rem; margin-bottom: .6rem; }
+.note-card { border-left: 3px solid var(--primary); background: var(--bg); border-radius: 8px; padding: .7rem .9rem; margin-bottom: .6rem; transition: box-shadow .3s; }
+.note-card.note-flash { box-shadow: 0 0 0 3px var(--primary-m); }
 .note-date { font-size: .68rem; font-weight: 700; color: var(--primary-d); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .3rem; }
 .note-text { font-size: .85rem; color: var(--text-2); line-height: 1.5; white-space: pre-wrap; }
 .note-add { display: flex; gap: .5rem; margin-bottom: 1rem; align-items: flex-start; }
 .note-add textarea { flex: 1; }
+
+/* ─ PROGRESS TIMELINE ────────────────────────────────────────────────────── */
+.progress-timeline { position: relative; height: 54px; margin: 0 0 .3rem; }
+.pt-track { position: absolute; top: 20px; left: 8px; right: 8px; height: 3px; background: var(--border-l); border-radius: 2px; }
+.pt-fill { position: absolute; top: 20px; left: 8px; height: 3px; background: var(--primary); border-radius: 2px; }
+.pt-dot { position: absolute; top: 13px; width: 16px; height: 16px; border-radius: 50%; background: var(--card); border: 3px solid var(--muted-l); transform: translateX(-50%); cursor: pointer; transition: all .12s; z-index: 1; }
+.pt-dot:hover { border-color: var(--primary); transform: translateX(-50%) scale(1.2); }
+.pt-dot.pt-latest { border-color: var(--primary); background: var(--primary); box-shadow: 0 0 0 4px var(--primary-l); }
+.pt-label { position: absolute; top: 32px; transform: translateX(-50%); font-size: .6rem; color: var(--muted); white-space: nowrap; font-weight: 600; }
+.pt-empty { font-size: .82rem; color: var(--muted); padding: .3rem 0 1rem; }
 
 /* ─ TOAST ────────────────────────────────────────────────────────────────── */
 .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #111827; color: #fff; padding: .75rem 1.25rem; border-radius: 10px; font-size: .855rem; font-weight: 500; box-shadow: var(--sh-lg); z-index: 9999; display: none; animation: tIn .25s cubic-bezier(.4,0,.2,1); align-items: center; gap: .55rem; max-width: 320px; }
@@ -1301,6 +1312,27 @@ async function saveClient() {
 }
 
 // ── CLIENT PROFILE ───────────────────────────────────────────────────────────
+// notesAsc: progress notes sorted oldest → newest. Renders a horizontal
+// journey line with a clickable dot per note (evenly spaced by order, not
+// by literal date distance, so it stays legible with irregular gaps).
+function renderProgressTimeline(notesAsc) {
+  if (!notesAsc.length) return '<div class="pt-empty">No progress notes yet — add the first one below.</div>';
+  const n = notesAsc.length;
+  const frac = i => n===1 ? 0.5 : i/(n-1);
+  const pos = i => `calc(8px + (100% - 16px) * ${frac(i)})`;
+  const dots = notesAsc.map((note,i) => `
+    <div class="pt-dot${i===n-1?' pt-latest':''}" style="left:${pos(i)}" title="${fmtDateLong(note.date)}" onclick="scrollToNote(${note.id})"></div>
+    <div class="pt-label" style="left:${pos(i)}">${fmtDate(note.date)}</div>`).join('');
+  const fillWidth = n===1 ? '0px' : `calc((100% - 16px) * ${frac(n-1)})`;
+  return `<div class="progress-timeline"><div class="pt-track"></div><div class="pt-fill" style="width:${fillWidth}"></div>${dots}</div>`;
+}
+function scrollToNote(noteId) {
+  const el = document.getElementById('note-'+noteId);
+  if (!el) return;
+  el.scrollIntoView({behavior:'smooth', block:'center'});
+  el.classList.add('note-flash');
+  setTimeout(()=>el.classList.remove('note-flash'), 1200);
+}
 function openClientProfile(id) {
   const c=cli(id); if(!c) return;
   profileClientId=id;
@@ -1325,13 +1357,14 @@ function openClientProfile(id) {
     </div>
 
     <div class="profile-section-title">Progress Notes</div>
+    ${renderProgressTimeline([...notes].reverse())}
     <div class="note-add">
       <textarea class="form-ctrl" id="newNoteText" placeholder="e.g. Prescribed Arnica 30C, one dose nightly. Review in 4 weeks…" rows="2"></textarea>
       <button class="btn btn-primary btn-sm" onclick="addClientNote()">Add</button>
     </div>
     <div id="notesList">
       ${notes.length ? notes.map(n=>`
-        <div class="note-card">
+        <div class="note-card" id="note-${n.id}">
           <div class="note-date">${fmtDateLong(n.date)}</div>
           <div class="note-text">${n.text}</div>
         </div>`).join('') : '<p style="color:var(--muted);font-size:.83rem">No progress notes yet.</p>'}
