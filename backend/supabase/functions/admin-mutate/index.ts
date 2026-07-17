@@ -54,6 +54,14 @@ Deno.serve(async (req) => {
         if (error) throw error;
         return json({ ok: true });
       }
+      case "deleteClient": {
+        // Appointments reference the client with ON DELETE SET NULL, so
+        // past appointment history is kept (shows "Unknown" client) rather
+        // than silently disappearing.
+        const { error } = await sb.from("clients").delete().eq("id", payload.id);
+        if (error) throw error;
+        return json({ ok: true });
+      }
       case "markStatus": {
         const { error } = await sb.from("appointments").update({ status: payload.status }).eq("id", payload.id);
         if (error) throw error;
