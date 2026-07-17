@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
       .neq("status", "cancelled");
     if (exErr) throw exErr;
 
-    if (!isSlotFree(date, time, service.dur, existing ?? [])) {
+    if (!isSlotFree(date, time, service.dur, mode, existing ?? [])) {
       return json({ error: "That time is no longer available. Please pick another slot." }, 409);
     }
 
@@ -65,6 +65,11 @@ Deno.serve(async (req) => {
         success_url: `${siteUrl}/booking.html?paid=1`,
         cancel_url: `${siteUrl}/booking.html?cancelled=1`,
         metadata: { serviceId: String(serviceId), mode, date, time, name, email, phone, notes: notes || "" },
+        // Shows a "promo code" field on Stripe's checkout page. Oana creates
+        // and manages codes herself in the Stripe Dashboard (Product catalogue
+        // → Coupons, then Payment links or Coupons → create a promotion code)
+        // — no code changes needed for her to add/retire codes.
+        allow_promotion_codes: true,
       });
       return json({ checkoutUrl: session.url });
     }

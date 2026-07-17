@@ -19,9 +19,40 @@ const SERVICES = [
   { id: 2, name: 'Follow-Up Consultation', dur: 45, price: 120, desc: 'For existing clients continuing treatment.', color: '#3b82f6', bg: '#eff6ff' }
 ];
 
-// Business hours by JS getDay() index (0=Sun..6=Sat). Closed Sat/Sun.
-const BUSINESS_HOURS = { 1: [9, 17], 2: [9, 17], 3: [9, 17], 4: [9, 17], 5: [9, 17] };
-const LUNCH = [13, 14]; // no bookings 13:00–14:00
+// Business hours by JS getDay() index (0=Sun..6=Sat), per session mode —
+// hours can differ between online and in-person, and a day can be closed
+// for one mode but not the other. `biweekly: true` means that day only
+// runs every second week (see isBiweeklyActiveWeek below).
+//   Mon: online 10-5, in-person 10-3
+//   Tue: online 10-5 only (no in-person)
+//   Wed: online 9-6 only, every second week
+//   Thu/Fri: closed
+//   Sat: online 10-2 only, every second week
+//   Sun: closed
+const BUSINESS_HOURS = {
+  1: { online: [10, 17], 'in-person': [10, 15] },
+  2: { online: [10, 17] },
+  3: { online: [9, 18], biweekly: true },
+  6: { online: [10, 14], biweekly: true },
+};
+
+// Anchor for the biweekly Wed/Sat pattern: ISO weeks are "on" or "off" in
+// alternation, anchored so the week containing today counts as "on" —
+// adjust ISO_WEEK_PARITY_OFFSET (0 or 1) if Oana says the wrong weeks are showing.
+const ISO_WEEK_PARITY_OFFSET = 0;
+function isoWeekNumber(ds) {
+  const [y, m, d] = ds.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  const dayNum = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - dayNum + 3);
+  const firstThursday = new Date(Date.UTC(date.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThursday.getUTCDay() + 6) % 7;
+  firstThursday.setUTCDate(firstThursday.getUTCDate() - firstDayNum + 3);
+  return 1 + Math.round((date - firstThursday) / (7 * 24 * 3600 * 1000));
+}
+function isBiweeklyActiveWeek(ds) {
+  return (isoWeekNumber(ds) + ISO_WEEK_PARITY_OFFSET) % 2 === 1;
+}
 
 const AV_COLORS = ['#2f6f62', '#3b82f6', '#8b5cf6', '#c2843a', '#b45f5f', '#0d9488', '#ec4899', '#6366f1'];
 
@@ -42,15 +73,26 @@ function avColor(name) { let h = 0; for (const c of name) h = (h * 31 + c.charCo
 function svcById(id) { return SERVICES.find(s => s.id === id); }
 
 // ── AVAILABILITY ────────────────────────────────────────────────────────
-function businessHoursFor(dateStr) {
+// mode is 'online' or 'in-person'. Returns [startHour, endHour] or null if
+// closed for that mode on that date.
+function businessHoursFor(dateStr, mode) {
   const wd = new Date(dateStr + 'T00:00:00').getDay();
-  return BUSINESS_HOURS[wd] || null;
+  const day = BUSINESS_HOURS[wd];
+  if (!day) return null;
+  if (day.biweekly && !isBiweeklyActiveWeek(dateStr)) return null;
+  return day[mode] || null;
+}
+// True if EITHER mode has any hours on this date — used only for the
+// admin calendar's visual "closed" styling (Oana can still click to book
+// any time regardless; this restriction is for the public booking flow).
+function anyModeOpen(dateStr) {
+  return !!businessHoursFor(dateStr, 'online') || !!businessHoursFor(dateStr, 'in-person');
 }
 // Returns an array of 'HH:MM' start times that fit a session of durMin
-// minutes on dateStr without overlapping lunch, existing bookings, or
-// (if dateStr is today) the past / next 30 minutes.
-function getAvailableSlots(store, dateStr, durMin) {
-  const bh = businessHoursFor(dateStr);
+// minutes on dateStr for the given mode, without overlapping existing
+// bookings or (if dateStr is today) the past / next 30 minutes.
+function getAvailableSlots(store, dateStr, durMin, mode) {
+  const bh = businessHoursFor(dateStr, mode);
   if (!bh) return [];
   const busy = store.appts
     .filter(a => a.date === dateStr && a.status !== 'cancelled')
@@ -61,7 +103,6 @@ function getAvailableSlots(store, dateStr, durMin) {
   const slots = [];
   for (let m = dayStart; m + durMin <= dayEnd; m += 15) {
     const slotEnd = m + durMin;
-    if (m < LUNCH[1] * 60 && slotEnd > LUNCH[0] * 60) continue;
     if (isToday && m <= nowM + 30) continue;
     if (busy.some(b => m < b.end && slotEnd > b.start)) continue;
     slots.push(m2t(m));

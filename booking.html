@@ -434,10 +434,12 @@ function renderDateTime() {
   scroll.innerHTML = '';
   const dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   let count = 0, offset = 0, firstAvail = null;
-  while (count < 14 && offset < 30) {
+  // in-person only runs one day a week, so this needs a wide lookahead
+  // window to gather 14 dates — 120 days covers it comfortably.
+  while (count < 14 && offset < 120) {
     const d = addDays(todayStr(), offset);
     offset++;
-    if (!businessHoursFor(d)) continue;
+    if (!businessHoursFor(d, bk.mode)) continue;
     count++;
     if (!firstAvail) firstAvail = d;
     const dt = new Date(d+'T00:00:00');
@@ -462,8 +464,8 @@ async function pickDate(d) {
   let slots;
   try {
     slots = backendEnabled()
-      ? (await backendGet('availability', { date: d, serviceId: bk.serviceId })).slots
-      : getAvailableSlots(loadStore(), d, svcDur(bk.serviceId));
+      ? (await backendGet('availability', { date: d, serviceId: bk.serviceId, mode: bk.mode })).slots
+      : getAvailableSlots(loadStore(), d, svcDur(bk.serviceId), bk.mode);
   } catch (e) {
     grid.innerHTML = '<div class="no-slots" style="grid-column:1/-1">Could not load availability — please try again.</div>';
     return;
