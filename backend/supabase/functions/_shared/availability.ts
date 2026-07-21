@@ -1,5 +1,7 @@
 // Mirrors BUSINESS_HOURS in /data.js — keep both in sync.
-//   Mon: online 10-5, in-person 10-3
+//   Mon: online 10-5, in-person 9-3 (last booking effectively ~2, since
+//        Oana stays until 3 — encoded as a 9-3 window so a 60min session
+//        starting at 2 still fits before the 3pm end cap)
 //   Tue: online 10-5 only (no in-person)
 //   Wed: online 9-6 only, every second week
 //   Thu/Fri: closed
@@ -7,7 +9,7 @@
 //   Sun: closed
 type DayHours = { online?: [number, number]; "in-person"?: [number, number]; biweekly?: boolean };
 const BUSINESS_HOURS: Record<number, DayHours> = {
-  1: { online: [10, 17], "in-person": [10, 15] },
+  1: { online: [10, 17], "in-person": [9, 15] },
   2: { online: [10, 17] },
   3: { online: [9, 18], biweekly: true },
   6: { online: [10, 14], biweekly: true },
