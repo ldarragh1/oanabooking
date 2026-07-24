@@ -7,8 +7,8 @@
 import Stripe from "npm:stripe@17";
 import { corsHeaders, handlePreflight, json } from "../_shared/cors.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
-import { svc } from "../_shared/services.ts";
-import { sendConfirmationEmail } from "../_shared/email.ts";
+import { svc, DEPOSIT_AMOUNT } from "../_shared/services.ts";
+import { sendConfirmationEmail, sendDepositConfirmationEmail } from "../_shared/email.ts";
 
 Deno.serve(async (req) => {
   const pre = handlePreflight(req);
@@ -61,17 +61,28 @@ Deno.serve(async (req) => {
         await sb.from("clients").update({ phone: m.phone }).eq("id", client.id);
       }
 
+      const isDeposit = m.depositOnly === "1";
+
       await sb.from("appointments").insert({
         client_id: client.id, service_id: serviceId, appt_date: m.date, appt_time: m.time,
-        duration_min: service.dur, mode: m.mode, pay_method: "stripe", pay_status: "paid",
+        duration_min: service.dur, mode: m.mode,
+        pay_method: isDeposit ? "in-person" : "stripe",
+        pay_status: isDeposit ? "deposit_paid" : "paid",
         status: "confirmed", source: "online", notes: m.notes || "", stripe_session_id: session.id,
       });
       await sb.from("clients").update({ visits: (client.visits ?? 0) + 1, last_visit: m.date }).eq("id", client.id);
 
-      await sendConfirmationEmail({
-        to: m.email, clientName: m.name, serviceName: service.name,
-        mode: m.mode as "online" | "in-person", apptDate: m.date, apptTime: m.time, price: service.price,
-      });
+      if (isDeposit) {
+        await sendDepositConfirmationEmail({
+          to: m.email, clientName: m.name, serviceName: service.name, apptDate: m.date, apptTime: m.time,
+          depositAmount: DEPOSIT_AMOUNT, balanceDue: service.price - DEPOSIT_AMOUNT,
+        });
+      } else {
+        await sendConfirmationEmail({
+          to: m.email, clientName: m.name, serviceName: service.name,
+          mode: m.mode as "online" | "in-person", apptDate: m.date, apptTime: m.time, price: service.price,
+        });
+      }
     } catch (e) {
       console.error("Failed to finalize paid booking:", e);
       // Returning 500 makes Stripe retry the webhook — safe, since the

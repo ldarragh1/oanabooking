@@ -19,6 +19,12 @@ const SERVICES = [
   { id: 2, name: 'Follow-Up Consultation', dur: 45, price: 120, desc: 'For existing clients continuing treatment.', color: '#3b82f6', bg: '#eff6ff' }
 ];
 
+// Required upfront (via Stripe) to secure a pay-in-person booking; the
+// remainder is paid at the session. Forfeited on cancellations made less
+// than 24 hours before the appointment. Keep in sync with DEPOSIT_AMOUNT
+// in backend/supabase/functions/_shared/services.ts.
+const DEPOSIT_AMOUNT = 20;
+
 // Business hours by JS getDay() index (0=Sun..6=Sat), per session mode —
 // hours can differ between online and in-person, and a day can be closed
 // for one mode but not the other. `biweekly: true` means that day only

@@ -245,7 +245,7 @@ textarea.f-ctrl { resize: vertical; min-height: 70px; }
       <div class="wiz-step" id="step-paymethod">
         <div class="step-lbl">Step 2 of 4</div>
         <h2 class="step-title">How would you like to pay?</h2>
-        <p class="step-sub">You can secure your session with card payment now, or pay when you arrive.</p>
+        <p class="step-sub">Pay in full now, or secure your slot with a small deposit and pay the rest when you arrive.</p>
         <div class="opt-grid">
           <div class="opt-card" id="pay-stripe" onclick="pickPayMethod('stripe')">
             <div class="opt-icon">💳</div>
@@ -254,9 +254,12 @@ textarea.f-ctrl { resize: vertical; min-height: 70px; }
           </div>
           <div class="opt-card" id="pay-inperson" onclick="pickPayMethod('in-person')">
             <div class="opt-icon">🤝</div>
-            <div class="opt-body"><div class="opt-title">Pay In Person</div><div class="opt-desc">Cash or card at your appointment</div></div>
+            <div class="opt-body"><div class="opt-title">Pay In Person</div><div class="opt-desc" id="depositDesc">Cash or card at your appointment</div></div>
             <div class="opt-check"></div>
           </div>
+        </div>
+        <div class="pay-choice-note" id="cancellationNote" style="display:none">
+          A €20 deposit secures your booking and comes off your session price. Cancellations made less than 24 hours before your appointment forfeit the deposit.
         </div>
         <div class="wiz-actions">
           <button class="btn btn-back" onclick="goBack()">Back</button>
@@ -354,11 +357,11 @@ textarea.f-ctrl { resize: vertical; min-height: 70px; }
           <div class="done-icon">
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <h2>Your appointment is booked!</h2>
-          <p>We've let Oana know you'll be paying in person.</p>
+          <h2>Your appointment is confirmed!</h2>
+          <p>Thanks — your deposit is received.</p>
         </div>
         <div class="summary-box done-summary" id="doneSummary2"></div>
-        <div class="done-note">💶 Payment will be collected at your appointment. Cash and card both accepted.</div>
+        <div class="done-note">💶 The remaining balance is collected at your appointment. Cash and card both accepted. Cancellations made less than 24 hours beforehand forfeit the deposit.</div>
         <div class="wiz-actions" style="margin-top:1.3rem"><button class="btn btn-primary" onclick="resetWizard()">Book Another Appointment</button></div>
       </div>
 
@@ -433,6 +436,9 @@ function fromMode() {
     goNext('step-datetime');
     renderDateTime();
   } else {
+    const sv = svcById(bk.serviceId);
+    document.getElementById('depositDesc').textContent =
+      `€${DEPOSIT_AMOUNT} deposit now, €${sv.price - DEPOSIT_AMOUNT} at your appointment`;
     goNext('step-paymethod');
   }
 }
@@ -442,6 +448,7 @@ function pickPayMethod(m) {
   bk.payMethod = m;
   document.getElementById('pay-stripe').classList.toggle('sel', m==='stripe');
   document.getElementById('pay-inperson').classList.toggle('sel', m==='in-person');
+  document.getElementById('cancellationNote').style.display = m==='in-person' ? 'block' : 'none';
   document.getElementById('payNextBtn').disabled = false;
 }
 function fromPayMethod() { goNext('step-datetime'); renderDateTime(); }
@@ -531,11 +538,18 @@ function fromDateTime() {
 // ── STEP 4: DETAILS ──────────────────────────────────────────────────────────
 function summaryHTML() {
   const sv = svcById(bk.serviceId);
-  return `
-    <div class="summary-row"><span>Service</span><span>${sv.name}</span></div>
-    <div class="summary-row"><span>Type</span><span>${bk.mode==='online'?'Online':'In Person'}</span></div>
-    <div class="summary-row"><span>When</span><span>${fmtDateLong(bk.date)} · ${bk.time}</span></div>
-    <div class="summary-row summary-total"><span>Total</span><span>€${sv.price}</span></div>`;
+  const rows = [
+    `<div class="summary-row"><span>Service</span><span>${sv.name}</span></div>`,
+    `<div class="summary-row"><span>Type</span><span>${bk.mode==='online'?'Online':'In Person'}</span></div>`,
+    `<div class="summary-row"><span>When</span><span>${fmtDateLong(bk.date)} · ${bk.time}</span></div>`,
+  ];
+  if (bk.payMethod === 'in-person') {
+    rows.push(`<div class="summary-row"><span>Balance at appointment</span><span>€${sv.price - DEPOSIT_AMOUNT}</span></div>`);
+    rows.push(`<div class="summary-row summary-total"><span>Deposit due now</span><span>€${DEPOSIT_AMOUNT}</span></div>`);
+  } else {
+    rows.push(`<div class="summary-row summary-total"><span>Total</span><span>€${sv.price}</span></div>`);
+  }
+  return rows.join('');
 }
 async function fromDetails() {
   const first = document.getElementById('bkFirst').value.trim();
@@ -553,16 +567,10 @@ async function fromDetails() {
     return;
   }
 
-  // Local demo mode: simulate Stripe with an in-page card form, or book
-  // straight away for pay-in-person.
-  if (bk.payMethod === 'stripe') {
-    document.getElementById('cardSummary').innerHTML = summaryHTML();
-    goNext('step-card');
-  } else {
-    createBooking();
-    document.getElementById('doneSummary2').innerHTML = summaryHTML();
-    goNext('step-done-inperson');
-  }
+  // Local demo mode: simulate Stripe with an in-page card form — every
+  // path pays something now (full price, or a deposit for pay-in-person).
+  document.getElementById('cardSummary').innerHTML = summaryHTML();
+  goNext('step-card');
 }
 
 // ── BACKEND SUBMISSION (real bookings, real Stripe Checkout, real email) ─────
@@ -613,10 +621,15 @@ function submitPayment() {
   goNext('step-processing');
   setTimeout(() => {
     createBooking();
-    document.getElementById('doneEmail1').textContent = bk.email;
-    document.getElementById('doneSummary1').innerHTML = summaryHTML();
     stepHistory = [];
-    showStep('step-done-paid');
+    if (bk.payMethod === 'in-person') {
+      document.getElementById('doneSummary2').innerHTML = summaryHTML();
+      showStep('step-done-inperson');
+    } else {
+      document.getElementById('doneEmail1').textContent = bk.email;
+      document.getElementById('doneSummary1').innerHTML = summaryHTML();
+      showStep('step-done-paid');
+    }
   }, 1100);
 }
 
@@ -639,7 +652,7 @@ function createBooking() {
     dur: svcDur(bk.serviceId),
     mode: bk.mode,
     payMethod: bk.payMethod,
-    payStatus: bk.payMethod === 'stripe' ? 'paid' : 'unpaid',
+    payStatus: bk.payMethod === 'stripe' ? 'paid' : 'deposit_paid',
     status: 'confirmed',
     source: 'online',
     notes: bk.notes || ''

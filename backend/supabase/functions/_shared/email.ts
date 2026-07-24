@@ -100,19 +100,24 @@ export async function sendConfirmationEmail(opts: {
   return sendEmail(opts.to, "Your appointment is confirmed", html);
 }
 
-export async function sendBookingReceivedEmail(opts: {
+export async function sendDepositConfirmationEmail(opts: {
   to: string; clientName: string; serviceName: string;
-  apptDate: string; apptTime: string; price: number;
+  apptDate: string; apptTime: string; depositAmount: number; balanceDue: number;
 }) {
   const html = wrapper(`
     <p>Hi ${opts.clientName},</p>
-    <p>Your <strong>${opts.serviceName}</strong> is booked at Elmwood House, 35 Ranelagh, Dublin 6.</p>
+    <p>Your <strong>${opts.serviceName}</strong> is confirmed — thanks for the deposit.</p>
     <table style="width:100%;border-collapse:collapse;margin:16px 0">
       <tr><td style="padding:6px 0;color:#756f60">When</td><td style="padding:6px 0;text-align:right;font-weight:700">${fmtDateLong(opts.apptDate)} · ${opts.apptTime}</td></tr>
-      <tr><td style="padding:6px 0;color:#756f60">Payment</td><td style="padding:6px 0;text-align:right;font-weight:700">€${opts.price} — pay in person</td></tr>
+      <tr><td style="padding:6px 0;color:#756f60">Where</td><td style="padding:6px 0;text-align:right;font-weight:700">Elmwood House, 35 Ranelagh, Dublin 6</td></tr>
+      <tr><td style="padding:6px 0;color:#756f60">Deposit paid</td><td style="padding:6px 0;text-align:right;font-weight:700">€${opts.depositAmount}</td></tr>
+      <tr><td style="padding:6px 0;color:#756f60">Balance due at your session</td><td style="padding:6px 0;text-align:right;font-weight:700">€${opts.balanceDue}</td></tr>
     </table>
-    <p>Please bring payment (cash or card) to your session.</p>`);
-  return sendEmail(opts.to, "Your appointment is booked", html);
+    <p style="font-size:13px;color:#7a5327;background:#fbf1e2;border:1px solid #ecd9b3;border-radius:8px;padding:.7rem .9rem;margin:0 0 16px">
+      Please note: cancellations made less than 24 hours before your appointment will forfeit the deposit.
+    </p>
+    <p>We look forward to seeing you.</p>`);
+  return sendEmail(opts.to, "Your appointment is confirmed — deposit received", html);
 }
 
 export async function sendReminderEmail(opts: {
